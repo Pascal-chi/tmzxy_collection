@@ -49,12 +49,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        
-        /* Smooth scrolling for filter buttons */
-        .filter-scroll {
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
+        .filter-scroll { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex justify-center py-8 font-sans select-none">
@@ -135,7 +130,7 @@
                     </button>
                 </div>
 
-                <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[200px]">
+                <div id="product-grid" class="grid grid-cols-2 gap-3 min-h-[200px] pb-20">
                     <div class="col-span-2 text-center text-gray-400 py-10 animate-pulse">
                         <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-gold-primary"></i>
                         <p class="text-xs">Loading gems from vault...</p>
@@ -208,16 +203,13 @@
                     </svg>
                     <button onclick="toggleMenu()" class="text-gray-500"><i class="fa-solid fa-times text-xl"></i></button>
                 </div>
-                
                 <ul class="space-y-6 text-gray-600 font-medium">
                     <li onclick="toggleMenu(); scrollToSection('home-target')" class="cursor-pointer hover:text-gold-primary">Home</li>
                     <li onclick="toggleMenu(); scrollToSection('collections-target')" class="cursor-pointer hover:text-gold-primary">Collections</li>
                     <li onclick="toggleMenu(); scrollToSection('about-target')" class="cursor-pointer hover:text-gold-primary">About Brand</li>
                     <li onclick="toggleMenu(); scrollToSection('contact-target')" class="cursor-pointer hover:text-gold-primary">Contact</li>
                 </ul>
-                <div class="mt-auto text-center text-xs text-gray-300">
-                    &copy; 2024 TMZXY Collection
-                </div>
+                <div class="mt-auto text-center text-xs text-gray-300"> &copy; 2024 TMZXY Collection </div>
             </div>
         </div>
 
@@ -227,10 +219,7 @@
                     <h2 class="font-bold text-lg">Your Bag</h2>
                     <button onclick="toggleCart()" class="text-gray-500"><i class="fa-solid fa-times text-xl"></i></button>
                 </div>
-                
-                <div id="overlay-cart-items" class="flex-grow overflow-y-auto space-y-4 no-scrollbar">
-                    </div>
-
+                <div id="overlay-cart-items" class="flex-grow overflow-y-auto space-y-4 no-scrollbar"></div>
                 <div class="pt-4 border-t mt-4">
                     <div class="flex justify-between font-bold text-lg mb-4">
                         <span>Total</span>
@@ -245,15 +234,12 @@
 
         <div id="product-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 px-4">
             <div class="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl animate-fade-in relative">
-                
                 <button onclick="closeProductModal()" class="absolute top-4 right-4 z-10 bg-white/50 hover:bg-white rounded-full p-2 transition">
                     <i class="fa-solid fa-times text-gray-800 text-lg"></i>
                 </button>
-
                 <div class="h-64 bg-gray-100">
                     <img id="modal-image" src="" class="w-full h-full object-cover">
                 </div>
-                
                 <div class="p-6">
                     <div class="flex justify-between items-start mb-2">
                         <div>
@@ -262,14 +248,8 @@
                         </div>
                         <p id="modal-price" class="text-lg font-bold text-gold-primary">₦0.00</p>
                     </div>
-
-                    <p id="modal-description" class="text-sm text-gray-600 mb-6 leading-relaxed">
-                        Description goes here.
-                    </p>
-
-                    <button id="modal-add-btn" class="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition">
-                        Add to Bag
-                    </button>
+                    <p id="modal-description" class="text-sm text-gray-600 mb-6 leading-relaxed">Description goes here.</p>
+                    <button id="modal-add-btn" class="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition">Add to Bag</button>
                 </div>
             </div>
         </div>
@@ -280,7 +260,6 @@
         import { createClient } from 'https://esm.sh/@sanity/client@6.10.0';
         import imageUrlBuilder from 'https://esm.sh/@sanity/image-url@1.0.2';
 
-        // --- 1. DATA CONNECTION ---
         const PROJECT_ID = 'hztdp0q2'; 
         const DATASET = 'production';
 
@@ -296,22 +275,26 @@
             return builder.image(source);
         }
 
-        // --- STATE ---
         let products = [];
         let cart = [];
         let itemsToShow = 4;
-        let currentCategory = 'all'; //  NEW: Track active category
-
-        // --- 2. RENDER FUNCTIONS ---
+        let currentCategory = 'all';
 
         async function init() {
-            //  y' to the fetch queryUPDATED: Added 'categor
             const query = '*[_type == "product"]{ _id, name, tag, price, description, image, featured, category }';
             
+            // 🟢 1. COLOR PALETTE FOR BORDERS
+            const borderColors = [
+                'border-yellow-200',  // Gold
+                'border-stone-200',   // Neutral
+                'border-orange-200',  // Rose Goldish
+                'border-slate-200'    // Silverish
+            ];
+
             try {
                 const sanityData = await client.fetch(query);
                 
-                products = sanityData.map(item => ({
+                products = sanityData.map((item, index) => ({
                     id: item._id,
                     name: item.name,
                     tag: item.tag,
@@ -319,8 +302,9 @@
                     description: item.description,
                     image: item.image ? urlFor(item.image).width(600).url() : 'https://via.placeholder.com/600',
                     featured: item.featured || false,
-                    category: item.category || 'all', // Default if missing
-                    color: 'border-teal-100' 
+                    category: item.category || 'all',
+                    // 🟢 2. ASSIGN COLOR DYNAMICALLY (CYCLE THROUGH)
+                    color: borderColors[index % borderColors.length] 
                 }));
 
                 renderProducts();
@@ -336,12 +320,10 @@
             }
         }
 
-        //  NEW: Filter Function
         function filterProducts(category, btnElement) {
             currentCategory = category;
-            itemsToShow = 4; // Reset limit when switching
+            itemsToShow = 4;
 
-            // Update Button Visuals
             if (btnElement) {
                 document.querySelectorAll('.filter-btn').forEach(btn => {
                     btn.classList.remove('bg-black', 'text-white');
@@ -358,20 +340,16 @@
             const grid = document.getElementById('product-grid');
             const loadMoreBtn = document.getElementById('load-more-container');
             
-            //  STEP 1: Filter the master list
             let filteredList = products;
             
             if (currentCategory !== 'all') {
                 filteredList = products.filter(p => p.category === currentCategory);
             }
 
-            // Check if empty
             if (filteredList.length === 0) {
-                // If it's loading initially, show spinner
                 if (products.length === 0) {
                      grid.innerHTML = `<div class="col-span-2 text-center text-gray-400 py-10">No products found yet.</div>`;
                 } else {
-                    // If filter has no results
                     grid.innerHTML = `<div class="col-span-2 text-center text-gray-400 py-10 flex flex-col items-center">
                         <i class="fa-regular fa-folder-open text-2xl mb-2 opacity-50"></i>
                         <p class="text-sm">No ${currentCategory} found.</p>
@@ -381,35 +359,34 @@
                 return;
             }
 
-            //  STEP 2: Slice the filtered list
             const visibleProducts = filteredList.slice(0, itemsToShow);
             
             grid.innerHTML = visibleProducts.map(product => `
-                <div class="bg-white p-3 rounded-2xl shadow-sm border-2 ${product.color} relative group animate-fade-in ${product.featured ? 'md:col-span-2' : ''}">
-                    <span class="absolute top-4 right-4 bg-gray-900 text-white text-[10px] px-2 py-1 rounded-full z-10">Drop</span>
+                <div class="bg-white p-2 rounded-2xl shadow-sm border ${product.color} relative group animate-fade-in ${product.featured ? 'col-span-2' : ''}">
                     
-                    <div class="${product.featured ? 'flex gap-4 items-center' : ''}">
-                        <div onclick="openProductModal('${product.id}')" class="${product.featured ? 'h-32 w-32 shrink-0' : 'h-40 mb-3'} rounded-xl overflow-hidden bg-gray-100 cursor-pointer relative">
+                    ${product.featured ? '<span class="absolute top-3 right-3 bg-black text-white text-[10px] px-2 py-1 rounded-full z-10">Featured</span>' : ''}
+                    
+                    <div class="${product.featured ? 'flex gap-3 items-center' : ''}">
+                        <div onclick="openProductModal('${product.id}')" class="${product.featured ? 'h-28 w-28 shrink-0' : 'h-36 mb-2'} rounded-xl overflow-hidden bg-gray-50 cursor-pointer relative">
                             <img src="${product.image}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                             <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                <i class="fa-solid fa-eye text-white drop-shadow-md"></i>
-                            </div>
                         </div>
                         
-                        <div class="${product.featured ? '' : ''}">
-                            <h3 class="font-bold text-gray-800 uppercase">${product.name}</h3>
-                            <p class="text-xs text-gray-400 ${product.featured ? 'mb-2' : ''}">${product.tag}</p>
-                            <p class="font-bold text-sm mt-1 text-gold-primary">₦${product.price ? product.price.toLocaleString() : '0'}</p>
+                        <div class="${product.featured ? 'flex-grow' : ''}">
+                            <h3 class="font-bold text-xs text-gray-800 uppercase leading-tight truncate">${product.name}</h3>
+                            <p class="text-[10px] text-gray-400 truncate mb-2">${product.tag}</p>
                             
-                            <button onclick="addToCart('${product.id}')" class="mt-2 text-xs bg-gray-100 hover:bg-gold-primary hover:text-white px-4 py-2 rounded-lg transition font-semibold shadow-sm active:scale-95">
-                                Add to Bag
-                            </button>
+                            <div class="flex items-center justify-between">
+                                <p class="font-bold text-xs text-gold-primary">₦${product.price ? product.price.toLocaleString() : '0'}</p>
+                                
+                                <button onclick="addToCart('${product.id}')" class="bg-gray-100 hover:bg-black hover:text-white h-7 w-7 flex items-center justify-center rounded-full transition shadow-sm active:scale-90">
+                                    <i class="fa-solid fa-plus text-[10px]"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             `).join('');
 
-            //  STEP 3: Handle Load More logic based on FILTERED list
             if (itemsToShow >= filteredList.length) {
                 loadMoreBtn.classList.add('hidden');
             } else {
@@ -482,11 +459,8 @@
             });
             
             message += `\n*Total: ₦${total.toLocaleString()}*`;
-
-            // Updated Phone Number
             const phoneNumber = "+2348152975443"; 
             const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-            
             window.open(url, '_blank');
         }
 
@@ -543,7 +517,6 @@
             }
         }
 
-        // --- EXPOSE FUNCTIONS TO WINDOW ---
         window.toggleMenu = toggleMenu;
         window.toggleCart = toggleCart;
         window.checkout = checkout;
@@ -553,10 +526,9 @@
         window.closeProductModal = closeProductModal;
         window.scrollToSection = scrollToSection;
         window.loadMoreProducts = loadMoreProducts;
-        window.filterProducts = filterProducts; // Exposed Filter function
+        window.filterProducts = filterProducts;
 
         init();
-
     </script>
 </body>
 </html>
