@@ -116,17 +116,21 @@
                     <button onclick="filterProducts('all', this)" class="filter-btn bg-black text-white px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap shadow-sm transition active:scale-95">
                         All Gems
                     </button>
-                    <button onclick="filterProducts('necklaces', this)" class="filter-btn bg-white text-gray-600 border border-gray-100 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap shadow-sm hover:border-gold-primary transition active:scale-95">
-                        Necklaces
+                    
+                    <button onclick="filterProducts('watches', this)" class="filter-btn bg-white text-gray-600 border border-gray-100 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap shadow-sm hover:border-gold-primary transition active:scale-95">
+                        Watches
                     </button>
-                    <button onclick="filterProducts('rings', this)" class="filter-btn bg-white text-gray-600 border border-gray-100 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap shadow-sm hover:border-gold-primary transition active:scale-95">
-                        Rings
-                    </button>
+
                     <button onclick="filterProducts('bracelets', this)" class="filter-btn bg-white text-gray-600 border border-gray-100 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap shadow-sm hover:border-gold-primary transition active:scale-95">
                         Bracelets
                     </button>
-                    <button onclick="filterProducts('earrings', this)" class="filter-btn bg-white text-gray-600 border border-gray-100 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap shadow-sm hover:border-gold-primary transition active:scale-95">
-                        Earrings
+
+                    <button onclick="filterProducts('necklaces', this)" class="filter-btn bg-white text-gray-600 border border-gray-100 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap shadow-sm hover:border-gold-primary transition active:scale-95">
+                        Necklaces
+                    </button>
+
+                    <button onclick="filterProducts('others', this)" class="filter-btn bg-white text-gray-600 border border-gray-100 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap shadow-sm hover:border-gold-primary transition active:scale-95">
+                        Others
                     </button>
                 </div>
 
@@ -283,12 +287,13 @@
         async function init() {
             const query = '*[_type == "product"]{ _id, name, tag, price, description, image, featured, category }';
             
-            // 🟢 1. COLOR PALETTE FOR BORDERS
+            // 5 COLORS including Teal
             const borderColors = [
-                'border-yellow-200',  // Gold
-                'border-stone-200',   // Neutral
-                'border-orange-200',  // Rose Goldish
-                'border-slate-200'    // Silverish
+                'border-teal-100',    // 1. Teal
+                'border-yellow-200',  // 2. Gold
+                'border-stone-200',   // 3. Neutral
+                'border-orange-200',  // 4. Rose Gold
+                'border-slate-200'    // 5. Silver
             ];
 
             try {
@@ -303,7 +308,6 @@
                     image: item.image ? urlFor(item.image).width(600).url() : 'https://via.placeholder.com/600',
                     featured: item.featured || false,
                     category: item.category || 'all',
-                    // 🟢 2. ASSIGN COLOR DYNAMICALLY (CYCLE THROUGH)
                     color: borderColors[index % borderColors.length] 
                 }));
 

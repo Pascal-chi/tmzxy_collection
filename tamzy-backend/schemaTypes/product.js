@@ -20,12 +20,10 @@ export default {
       type: 'string',
       options: {
         list: [
-          { title: 'Necklaces', value: 'necklaces' },
-          { title: 'Rings', value: 'rings' },
-          { title: 'Bracelets', value: 'bracelets' },
-          { title: 'Earrings', value: 'earrings' },
           { title: 'Watches', value: 'watches' },
-          { title: 'Sets', value: 'sets' }
+          { title: 'Bracelets', value: 'bracelets' },
+          { title: 'Necklaces', value: 'necklaces' },
+          { title: 'Others', value: 'others' } 
         ]
       }
     },
