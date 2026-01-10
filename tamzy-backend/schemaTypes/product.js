@@ -5,27 +5,41 @@ export default {
   fields: [
     {
       name: 'name',
-      title: 'Product Name',
+      title: 'Name',
       type: 'string',
     },
+    {
+      name: 'price',
+      title: 'Price',
+      type: 'number',
+    },
+    //  NEW: ADD THIS BLOCK HERE
+    {
+      name: 'category',
+      title: 'Category',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Necklaces', value: 'necklaces' },
+          { title: 'Rings', value: 'rings' },
+          { title: 'Bracelets', value: 'bracelets' },
+          { title: 'Earrings', value: 'earrings' },
+          { title: 'Watches', value: 'watches' },
+          { title: 'Sets', value: 'sets' }
+        ]
+      }
+    },
+    // END NEW BLOCK
     {
       name: 'tag',
       title: 'Tagline',
       type: 'string',
-      description: 'e.g., 18k Italian Gold'
-    },
-    {
-      name: 'price',
-      title: 'Price (Naira)',
-      type: 'number',
     },
     {
       name: 'image',
-      title: 'Product Image',
+      title: 'Image',
       type: 'image',
-      options: {
-        hotspot: true,
-      },
+      options: { hotspot: true },
     },
     {
       name: 'description',
@@ -34,9 +48,8 @@ export default {
     },
     {
       name: 'featured',
-      title: 'Featured Product?',
-      type: 'boolean',
-      initialValue: false
+      title: 'Featured Product',
+      type: 'boolean'
     }
   ],
 }

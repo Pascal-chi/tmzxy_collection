@@ -49,6 +49,12 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        
+        /* Smooth scrolling for filter buttons */
+        .filter-scroll {
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex justify-center py-8 font-sans select-none">
@@ -111,7 +117,25 @@
                     <i class="fa-solid fa-tags text-gray-400"></i>
                 </div>
 
-                <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex gap-2 overflow-x-auto pb-4 mb-2 filter-scroll">
+                    <button onclick="filterProducts('all', this)" class="filter-btn bg-black text-white px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap shadow-sm transition active:scale-95">
+                        All Gems
+                    </button>
+                    <button onclick="filterProducts('necklaces', this)" class="filter-btn bg-white text-gray-600 border border-gray-100 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap shadow-sm hover:border-gold-primary transition active:scale-95">
+                        Necklaces
+                    </button>
+                    <button onclick="filterProducts('rings', this)" class="filter-btn bg-white text-gray-600 border border-gray-100 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap shadow-sm hover:border-gold-primary transition active:scale-95">
+                        Rings
+                    </button>
+                    <button onclick="filterProducts('bracelets', this)" class="filter-btn bg-white text-gray-600 border border-gray-100 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap shadow-sm hover:border-gold-primary transition active:scale-95">
+                        Bracelets
+                    </button>
+                    <button onclick="filterProducts('earrings', this)" class="filter-btn bg-white text-gray-600 border border-gray-100 px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap shadow-sm hover:border-gold-primary transition active:scale-95">
+                        Earrings
+                    </button>
+                </div>
+
+                <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[200px]">
                     <div class="col-span-2 text-center text-gray-400 py-10 animate-pulse">
                         <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-gold-primary"></i>
                         <p class="text-xs">Loading gems from vault...</p>
@@ -267,27 +291,26 @@
             apiVersion: '2023-05-03'
         });
 
-        // Image Builder
         const builder = imageUrlBuilder(client);
         function urlFor(source) {
             return builder.image(source);
         }
 
-        // State
+        // --- STATE ---
         let products = [];
         let cart = [];
         let itemsToShow = 4;
+        let currentCategory = 'all'; //  NEW: Track active category
 
         // --- 2. RENDER FUNCTIONS ---
 
         async function init() {
-            // Fetch data
-            const query = '*[_type == "product"]{ _id, name, tag, price, description, image, featured }';
+            //  y' to the fetch queryUPDATED: Added 'categor
+            const query = '*[_type == "product"]{ _id, name, tag, price, description, image, featured, category }';
             
             try {
                 const sanityData = await client.fetch(query);
                 
-                // Convert data
                 products = sanityData.map(item => ({
                     id: item._id,
                     name: item.name,
@@ -296,10 +319,10 @@
                     description: item.description,
                     image: item.image ? urlFor(item.image).width(600).url() : 'https://via.placeholder.com/600',
                     featured: item.featured || false,
+                    category: item.category || 'all', // Default if missing
                     color: 'border-teal-100' 
                 }));
 
-                // Render
                 renderProducts();
                 updateCartUI();
 
@@ -313,16 +336,53 @@
             }
         }
 
+        //  NEW: Filter Function
+        function filterProducts(category, btnElement) {
+            currentCategory = category;
+            itemsToShow = 4; // Reset limit when switching
+
+            // Update Button Visuals
+            if (btnElement) {
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('bg-black', 'text-white');
+                    btn.classList.add('bg-white', 'text-gray-600', 'border', 'border-gray-100');
+                });
+                btnElement.classList.remove('bg-white', 'text-gray-600', 'border', 'border-gray-100');
+                btnElement.classList.add('bg-black', 'text-white');
+            }
+
+            renderProducts();
+        }
+
         function renderProducts() {
             const grid = document.getElementById('product-grid');
             const loadMoreBtn = document.getElementById('load-more-container');
             
-            if (products.length === 0) {
-                grid.innerHTML = `<div class="col-span-2 text-center text-gray-400 py-10">No products found yet. Add some in Sanity!</div>`;
+            //  STEP 1: Filter the master list
+            let filteredList = products;
+            
+            if (currentCategory !== 'all') {
+                filteredList = products.filter(p => p.category === currentCategory);
+            }
+
+            // Check if empty
+            if (filteredList.length === 0) {
+                // If it's loading initially, show spinner
+                if (products.length === 0) {
+                     grid.innerHTML = `<div class="col-span-2 text-center text-gray-400 py-10">No products found yet.</div>`;
+                } else {
+                    // If filter has no results
+                    grid.innerHTML = `<div class="col-span-2 text-center text-gray-400 py-10 flex flex-col items-center">
+                        <i class="fa-regular fa-folder-open text-2xl mb-2 opacity-50"></i>
+                        <p class="text-sm">No ${currentCategory} found.</p>
+                    </div>`;
+                }
+                loadMoreBtn.classList.add('hidden');
                 return;
             }
 
-            const visibleProducts = products.slice(0, itemsToShow);
+            //  STEP 2: Slice the filtered list
+            const visibleProducts = filteredList.slice(0, itemsToShow);
             
             grid.innerHTML = visibleProducts.map(product => `
                 <div class="bg-white p-3 rounded-2xl shadow-sm border-2 ${product.color} relative group animate-fade-in ${product.featured ? 'md:col-span-2' : ''}">
@@ -349,7 +409,8 @@
                 </div>
             `).join('');
 
-            if (itemsToShow >= products.length) {
+            //  STEP 3: Handle Load More logic based on FILTERED list
+            if (itemsToShow >= filteredList.length) {
                 loadMoreBtn.classList.add('hidden');
             } else {
                 loadMoreBtn.classList.remove('hidden');
@@ -422,7 +483,8 @@
             
             message += `\n*Total: ₦${total.toLocaleString()}*`;
 
-            const phoneNumber = "+2347039773619"; 
+            // Updated Phone Number
+            const phoneNumber = "+2348152975443"; 
             const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
             
             window.open(url, '_blank');
@@ -445,7 +507,6 @@
             document.getElementById('modal-price').innerText = `₦${product.price.toLocaleString()}`;
             document.getElementById('modal-description').innerText = product.description;
             
-            // Re-bind the Add button
             const btn = document.getElementById('modal-add-btn');
             btn.onclick = function() { addToCart(product.id); };
 
@@ -482,9 +543,7 @@
             }
         }
 
-        // --- 3. EXPOSE FUNCTIONS TO HTML ---
-        // Because this is a "module", functions are private by default.
-        // We must manually attach them to the window so your buttons work.
+        // --- EXPOSE FUNCTIONS TO WINDOW ---
         window.toggleMenu = toggleMenu;
         window.toggleCart = toggleCart;
         window.checkout = checkout;
@@ -494,8 +553,8 @@
         window.closeProductModal = closeProductModal;
         window.scrollToSection = scrollToSection;
         window.loadMoreProducts = loadMoreProducts;
+        window.filterProducts = filterProducts; // Exposed Filter function
 
-        // Start
         init();
 
     </script>
